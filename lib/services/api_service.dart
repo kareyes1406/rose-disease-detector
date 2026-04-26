@@ -13,13 +13,13 @@ class ApiService {
     final ext = imageFile.path.split('.').last.toLowerCase();
     final mimeType = ext == 'png' ? 'image/png' : 'image/jpeg';
 
-    // Paso 1: enviar imagen
+    // Paso 1: enviar imagen y obtener event_id
     final url = Uri.parse('$_baseUrl/call/diagnosticar');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'data': ['data:$mimeType;base64,$base64Image'],
+        'data': [{'path': 'data:$mimeType;base64,$base64Image', 'meta': {'_type': 'gradio.FileData'}}],
       }),
     ).timeout(const Duration(seconds: 30));
 
@@ -29,26 +29,25 @@ class ApiService {
 
     final eventId = jsonDecode(response.body)['event_id'];
 
-    // Paso 2: obtener resultado
+    // Paso 2: obtener resultado via SSE
     final resultUrl = Uri.parse('$_baseUrl/call/diagnosticar/$eventId');
     final resultResp = await http.get(resultUrl)
         .timeout(const Duration(seconds: 60));
 
     if (resultResp.statusCode != 200) {
-      throw Exception('Error obteniendo resultado: ${resultResp.statusCode}');
+      throw Exception('Error resultado: ${resultResp.statusCode} - ${resultResp.body}');
     }
 
-    // Parsear SSE response
     final lines = resultResp.body.split('\n');
     String? dataLine;
     for (final line in lines) {
       if (line.startsWith('data: ')) {
-        dataLine = line.substring(6);
+        dataLine = line.substring(6).trim();
       }
     }
 
-    if (dataLine == null) {
-      throw Exception('Respuesta vacía del servidor');
+    if (dataLine == null || dataLine.isEmpty) {
+      throw Exception('Respuesta vacía: ${resultResp.body}');
     }
 
     final data = jsonDecode(dataLine);
