@@ -13,41 +13,47 @@ class ApiService {
     final ext = imageFile.path.split('.').last.toLowerCase();
     final mimeType = ext == 'png' ? 'image/png' : 'image/jpeg';
 
-    // Gradio 4.x usa /queue/join
-    final url = Uri.parse('$_baseUrl/queue/join');
-    final response = await http
-        .post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'data': ['data:$mimeType;base64,$base64Image'],
-            'event_data': null,
-            'fn_index': 0,
-            'session_hash': 'flutter_app',
-          }),
-        )
-        .timeout(const Duration(seconds: 60));
+    // Paso 1: enviar imagen
+    final url = Uri.parse('$_baseUrl/call/diagnosticar');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'data': ['data:$mimeType;base64,$base64Image'],
+      }),
+    ).timeout(const Duration(seconds: 30));
 
     if (response.statusCode != 200) {
-      throw Exception('Error del servidor: ${response.statusCode}');
+      throw Exception('Error del servidor: ${response.statusCode} - ${response.body}');
     }
 
-    // Esperar resultado via /queue/status
     final eventId = jsonDecode(response.body)['event_id'];
-    final statusUrl = Uri.parse('$_baseUrl/queue/status?event_id=$eventId&session_hash=flutter_app');
-    
-    for (int i = 0; i < 30; i++) {
-      await Future.delayed(const Duration(seconds: 2));
-      final statusResp = await http.get(statusUrl);
-      final statusData = jsonDecode(statusResp.body);
-      
-      if (statusData['msg'] == 'process_completed') {
-        final resultText = statusData['output']['data'][0] as String;
-        return _parseResult(resultText);
+
+    // Paso 2: obtener resultado
+    final resultUrl = Uri.parse('$_baseUrl/call/diagnosticar/$eventId');
+    final resultResp = await http.get(resultUrl)
+        .timeout(const Duration(seconds: 60));
+
+    if (resultResp.statusCode != 200) {
+      throw Exception('Error obteniendo resultado: ${resultResp.statusCode}');
+    }
+
+    // Parsear SSE response
+    final lines = resultResp.body.split('\n');
+    String? dataLine;
+    for (final line in lines) {
+      if (line.startsWith('data: ')) {
+        dataLine = line.substring(6);
       }
     }
 
-    throw Exception('Tiempo de espera agotado');
+    if (dataLine == null) {
+      throw Exception('Respuesta vacía del servidor');
+    }
+
+    final data = jsonDecode(dataLine);
+    final resultText = data[0] as String;
+    return _parseResult(resultText);
   }
 
   static DiagnosisResult _parseResult(String markdown) {
