@@ -81,7 +81,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Error al conectar con el servidor.\nVerifica tu conexión a internet.';
+        _errorMessage = 'Error: ${e.toString()}';
       });
     }
   }
