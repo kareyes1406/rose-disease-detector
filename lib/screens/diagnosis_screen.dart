@@ -86,7 +86,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
         _errorMessage = 'Error: ${e.toString()}';
       });
     }
-
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
