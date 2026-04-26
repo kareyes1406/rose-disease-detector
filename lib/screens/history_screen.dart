@@ -19,7 +19,13 @@ class _HistoryScreenState extends State<HistoryScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadHistory();
   }
+
+Future<void> _loadHistory() async {
+  await HistoryService().load();
+  if (mounted) setState(() {});
+}
 
   @override
   void dispose() {
