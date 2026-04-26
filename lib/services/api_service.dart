@@ -16,7 +16,7 @@ class ApiService {
     final mimeType = ext == 'png' ? 'image/png' : 'image/jpeg';
 
     // Gradio API call
-    final url = Uri.parse('$_baseUrl/run/predict');
+    final url = Uri.parse('$_baseUrl/api/predict');
     final response = await http
         .post(
           url,
