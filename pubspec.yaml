@@ -1,0 +1,40 @@
+name: rose_disease_detector
+description: Detector de enfermedades en hojas de rosa usando IA.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # HTTP requests to HuggingFace API
+  http: ^1.2.0
+  
+  # Image picker (camera + gallery)
+  image_picker: ^1.0.7
+  
+  # Local storage for history
+  shared_preferences: ^2.2.2
+  
+  # Charts (bar chart + pie chart)
+  fl_chart: ^0.67.0
+  
+  # PDF generation
+  pdf: ^3.10.8
+  
+  # File path utilities
+  path_provider: ^2.1.2
+  
+  # Share PDF / files
+  share_plus: ^7.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
