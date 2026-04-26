@@ -73,9 +73,11 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
     try {
       final result = await ApiService.diagnose(_selectedImage!);
       await HistoryService().add(result);
+      final saved = HistoryService().history;
       setState(() {
         _result = result;
         _isLoading = false;
+        _errorMessage = 'Guardado: ${saved.length} registros';
       });
       _resultController.forward();
     } catch (e) {
@@ -84,7 +86,6 @@ class _DiagnosisScreenState extends State<DiagnosisScreen>
         _errorMessage = 'Error: ${e.toString()}';
       });
     }
-  }
 
   @override
   Widget build(BuildContext context) {
