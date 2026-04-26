@@ -17,6 +17,16 @@ class ExportScreen extends StatefulWidget {
 class _ExportScreenState extends State<ExportScreen> {
   bool _isGenerating = false;
   String? _successMessage;
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+  }
+  
+  Future<void> _loadHistory() async {
+    await HistoryService().load();
+    if (mounted) setState(() {});
+  }
 
   Future<void> _generatePdf() async {
     final history = HistoryService().history;
